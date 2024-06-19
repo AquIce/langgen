@@ -1,7 +1,7 @@
 default: run
 
 build:
-	g++ -Iinclude -Wall -Wpedantic -Werror langgen/lexer/lexer.cpp langgen/parser/ast.cpp langgen/parser/parser.cpp main.cpp -o lg
+	g++ -Iinclude -Wall -Wpedantic -Werror langgen/lexer/lexer.cpp langgen/parser/ast.cpp langgen/parser/parser.cpp langgen/interpreter/values.cpp langgen/interpreter/env.cpp langgen/interpreter/interpreter.cpp main.cpp -o lg
 
 run: build
 	./lg

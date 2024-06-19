@@ -1,8 +1,10 @@
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <AquIce/langgen/lexer.hpp>
 #include <AquIce/langgen/parser.hpp>
+#include <AquIce/langgen/interpreter.hpp>
 
 #pragma region Prototypes
 
@@ -14,6 +16,8 @@ std::shared_ptr<langgen::ast::Expression> parse_binary_expression(std::vector<la
 
 void setup_parser(langgen::parser::Parser& parser);
 
+void setup_interpreter(langgen::interpreter::Interpreter& interpreter);
+
 #pragma endregion
 
 #pragma region Classes
@@ -24,6 +28,16 @@ public:
 		this->left = left;
 		this->operator_symbol = operator_symbol;
 		this->right = right;
+	}
+
+	std::shared_ptr<langgen::ast::Expression> get_left() {
+		return this->left;
+	}
+	std::string get_operator_symbol() {
+		return this->operator_symbol;
+	}
+	std::shared_ptr<langgen::ast::Expression> get_right() {
+		return this->right;
 	}
 	
 	virtual std::string type() override {
@@ -87,6 +101,24 @@ int main(int argc, char** argv) {
 	);
 
 	std::cout << program->repr() << std::endl;
+
+	// * INTERPRETER
+
+	langgen::interpreter::Interpreter interpreter;
+
+	setup_interpreter(interpreter);
+
+	std::unordered_map<std::string, std::string> results;
+
+	langgen::interpreter::interpret(
+		interpreter,
+		results,
+		program
+	);
+
+	for(const auto& [node, result] : results) {
+		std::cout << node << " -> " << result << std::endl;
+	}
 
 	return 0;
 }
@@ -199,6 +231,89 @@ void setup_parser(langgen::parser::Parser& parser) {
 	);
 
 	langgen::parser::demoteTopNode(parser, "NumberExpression");
+}
+
+#pragma endregion
+
+#pragma region Interpreter Implementation
+
+bool mutabilityValidationFunction(langgen::env::EnvValue value) {
+	try {
+		return value.properties.at("isMutable") == "true";
+	} catch(const std::exception& e) {
+		return false;
+	}
+}
+
+std::shared_ptr<langgen::values::RuntimeValue> evaluateBinaryExpression (
+	langgen::interpreter::Interpreter& interpreter,
+	std::shared_ptr<langgen::ast::Statement> statement,
+	std::shared_ptr<langgen::env::Environment> env
+) {
+	std::shared_ptr<BinaryExpression> binaryExpression = std::dynamic_pointer_cast<BinaryExpression>(statement);
+
+	std::shared_ptr<langgen::values::RuntimeValue> left = langgen::interpreter::evaluateStatement(interpreter, binaryExpression->get_left(), env);
+	std::shared_ptr<langgen::values::RuntimeValue> right = langgen::interpreter::evaluateStatement(interpreter, binaryExpression->get_right(), env);
+
+	if(
+		left->type() != "NumberValue" ||
+		right->type() != "NumberValue"
+	) {
+		throw std::runtime_error("Trying to add non-number operands");
+	}
+
+	double left_nb = std::dynamic_pointer_cast<langgen::values::NumberValue>(left)->get();
+	double right_nb = std::dynamic_pointer_cast<langgen::values::NumberValue>(right)->get();
+
+	std::string operator_symbol = binaryExpression->get_operator_symbol();
+
+	if(operator_symbol == "+") {
+		return std::make_shared<langgen::values::NumberValue>(left_nb + right_nb);
+	}
+	if(operator_symbol == "-") {
+		return std::make_shared<langgen::values::NumberValue>(left_nb - right_nb);
+	}
+	if(operator_symbol == "*") {
+		return std::make_shared<langgen::values::NumberValue>(left_nb * right_nb);
+	}
+	if(operator_symbol == "/") {
+		return std::make_shared<langgen::values::NumberValue>(left_nb / right_nb);
+	}
+
+	throw std::runtime_error("Unknown operator " + operator_symbol);
+};
+
+void setup_interpreter(langgen::interpreter::Interpreter& interpreter) {
+
+	std::vector<std::string> valueTypes = std::vector<std::string>();
+
+	std::vector<std::string> envValuesProperties = std::vector<std::string>({
+		"isMutable"
+	});
+
+	langgen::env::EnvValidationRule mutabilityValidation = {
+		&mutabilityValidationFunction,
+		std::vector<langgen::env::ValidationRuleSensitivity>({
+			langgen::env::ValidationRuleSensitivity::SET
+		})
+	};
+
+	std::vector<langgen::env::EnvValidationRule> validationRules = std::vector<langgen::env::EnvValidationRule>({
+		mutabilityValidation
+	});
+
+	std::unordered_map<std::string, langgen::interpreter::ParseStatementFunction> nodeEvaluationFunctions = std::unordered_map<std::string, langgen::interpreter::ParseStatementFunction>({
+		{ "BinaryExpression", &evaluateBinaryExpression }
+	});
+
+	langgen::interpreter::setup_interpreter(
+		interpreter,
+		valueTypes,
+		envValuesProperties,
+		validationRules,
+		nodeEvaluationFunctions
+	);
+
 }
 
 #pragma endregion
