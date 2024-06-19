@@ -23,7 +23,6 @@ namespace langgen {
 		)> ParseStatementFunction;
 		
 		typedef struct Interpreter {
-			std::vector<std::string> valueTypes;
 			std::vector<std::string> envValuesProperties;
 			std::vector<langgen::env::EnvValidationRule> validationRules;
 			std::unordered_map<std::string, ParseStatementFunction> nodeEvaluationFunctions;
@@ -31,19 +30,18 @@ namespace langgen {
 
 		void setup_interpreter(
 			Interpreter& interpreter,
-			std::vector<std::string> valueTypes,
 			std::vector<std::string> envValuesProperties,
 			std::vector<langgen::env::EnvValidationRule> validationRules,
 			std::unordered_map<std::string, ParseStatementFunction> nodeEvaluationFunctions
 		);
 
-		std::shared_ptr<langgen::values::RuntimeValue> evaluateStatement(
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_statement(
 			Interpreter& interpreter,
 			std::shared_ptr<langgen::ast::Statement> statement,
 			std::shared_ptr<langgen::env::Environment> env
 		);
 
-		std::shared_ptr<langgen::values::RuntimeValue> evaluateScope(
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_scope(
 			Interpreter& interpreter,
 			std::shared_ptr<langgen::ast::Scope> scope,
 			std::unordered_map<std::string, std::string>& results,

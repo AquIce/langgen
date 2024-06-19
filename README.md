@@ -19,6 +19,13 @@
 		- [Result](#result-1)
 		- [Code](#code-1)
 	- [Interpreter](#interpreter)
+		- [Configuration](#configuration-2)
+			- [Custom Node Classes](#custom-node-classes-1)
+			- [Custom Evaluation Functions](#custom-evaluation-functions)
+			- [Actual Configuration](#actual-configuration-1)
+		- [Execution](#execution-2)
+		- [Result](#result-2)
+		- [Code](#code-2)
 
 # Setup
 
@@ -296,7 +303,7 @@ void setup_lexer(langgen::lexer::Lexer& lexer) {
 
 ### Configuration
 
-To run your custom lexer, you first need to import the header file.
+To run your custom parser, you first need to import the header file.
 
 ```cpp
 // main.cpp
@@ -369,6 +376,8 @@ In order to create a custom Node class, you need to do a few things:
 3. And the `repr` method as well
 
 	```cpp
+	// main.cpp > BinaryExpression
+
 	virtual std::string repr(int indent = 0) {
 		return
 			std::string(indent, '\t') + "(\n" +
@@ -760,4 +769,142 @@ void setup_parser(langgen::parser::Parser& parser) {
 
 ## Interpreter
 
-`[NOT IMPLEMENTED YET]`
+### Configuration
+
+To run your custom interpreter, you first need to import the header file.
+
+```cpp
+// main.cpp
+
+#include <AquIce/langgen/interpreter.hpp>
+```
+
+Then, instanciate the `Interpreter` struct, found in `langgen::interpreter`.
+
+```cpp
+// main.cpp > main
+
+langgen::interpreter::Interpreter interpreter;
+```
+
+After that, you have to load a custom configuration into this interpreter.
+
+As for both the lexer and parser, we will move this code in its own function : `setup_interpreter`.
+
+Here is this function's header :
+
+```cpp
+// main.cpp
+
+void setup_interpreter(langgen::interpreter::Interpreter& interpreter);
+```
+
+#### Custom Node Classes
+
+To add a new Value Type, we need to create a class representing it.
+
+There are 3 built-in Value Types :
+
+1. `RuntimeValue`
+	
+	The base class, only used for inheritance.
+
+2. `NullValue`
+
+	Inherits from `RuntimeValue` and holds no value.
+
+3. `NumberValue`
+
+	Inherits from `RuntimeValue`, holds the value of a number.
+
+In order to create a custom Node class, you need to do a few things:
+
+1. Your class must inherit from `RuntimeValue` or one of its derived classes
+
+	```cpp
+	// main.cpp
+
+	class BooleanValue: public langgen::values::RuntimeValue {}
+	```
+
+2. You need to implement the virtual method `type`
+
+	```cpp
+	// main.cpp > BooleanValue
+
+	virtual std::string type() override {
+		return "BooleanValue";
+	}
+	```
+
+3. And the `repr` method as well
+
+	```cpp
+	// main.cpp > BooleanValue
+
+	virtual std::string repr() override {
+		return this->value ? "true" : "false";
+	}
+	```
+
+4. And finally the `isTrue` method
+
+	```cpp
+	// main.cpp > BooleanValue
+
+	virtual bool IsTrue() override {
+		return this->get();
+	}
+	```
+
+Then, you can add any data your class might need, as well as a custom constructor :
+
+```cpp
+// main.cpp > BooleanValue
+
+public:
+	BooleanValue(bool value = false) {
+		this->value = value;
+	}
+	
+	bool get() {
+		return this->value;
+	}
+```
+```cpp
+// main.cpp > BooleanValue
+
+private:
+	bool value;
+```
+
+#### Custom Evaluation Functions
+
+Now that we need a way to evaluate our AST Nodes to get output.
+
+We have to declare a function that takes in:
+
+- A reference to an interpreter
+- A shared pointer to a Statement (or derived class)
+- A shared pointer to an Environment
+
+And returns a shared pointer to a RuntimeValue.
+
+As a convention, we will name the functions `evaluate_<thing_to_evaluate>`
+
+```cpp
+std::shared_ptr<langgen::values::RuntimeValue> evaluate_any (
+	langgen::interpreter::Interpreter& interpreter,
+	std::shared_ptr<langgen::ast::Statement> statement,
+	std::shared_ptr<langgen::env::Environment> env
+);
+```
+
+#### Actual Configuration
+
+### Execution
+
+### Result
+
+### Code
+

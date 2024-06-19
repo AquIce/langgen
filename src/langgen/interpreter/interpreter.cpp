@@ -2,15 +2,10 @@
 
 void langgen::interpreter::setup_interpreter(
 	langgen::interpreter::Interpreter& interpreter,
-	std::vector<std::string> valueTypes,
 	std::vector<std::string> envValuesProperties,
 	std::vector<langgen::env::EnvValidationRule> validationRules,
 	std::unordered_map<std::string, ParseStatementFunction> nodeEvaluationFunctions
 ) {
-	interpreter.valueTypes = valueTypes;
-	interpreter.valueTypes.push_back("NullValue");
-	interpreter.valueTypes.push_back("NumberValue");
-
 	interpreter.envValuesProperties = envValuesProperties;
 
 	interpreter.validationRules = validationRules;
@@ -27,7 +22,7 @@ void langgen::interpreter::setup_interpreter(
 	};
 }
 
-std::shared_ptr<langgen::values::RuntimeValue> langgen::interpreter::evaluateStatement(
+std::shared_ptr<langgen::values::RuntimeValue> langgen::interpreter::evaluate_statement(
 	langgen::interpreter::Interpreter& interpreter,
 	std::shared_ptr<langgen::ast::Statement> statement,
 	std::shared_ptr<langgen::env::Environment> env
@@ -40,7 +35,7 @@ std::shared_ptr<langgen::values::RuntimeValue> langgen::interpreter::evaluateSta
 	throw std::runtime_error("Trying to evaluate unknown statement " + statement->type());
 }
 
-std::shared_ptr<langgen::values::RuntimeValue> langgen::interpreter::evaluateScope(
+std::shared_ptr<langgen::values::RuntimeValue> langgen::interpreter::evaluate_scope(
 	langgen::interpreter::Interpreter& interpreter,
 	std::shared_ptr<langgen::ast::Scope> scope,
 	std::unordered_map<std::string, std::string>& results,
@@ -58,7 +53,7 @@ std::shared_ptr<langgen::values::RuntimeValue> langgen::interpreter::evaluateSco
 	std::shared_ptr<langgen::values::RuntimeValue> prev_result = std::make_shared<langgen::values::NullValue>();
 
 	for(std::shared_ptr<langgen::ast::Statement> statement : scope->body) {
-		result = langgen::interpreter::evaluateStatement(interpreter, statement, scope_env);
+		result = langgen::interpreter::evaluate_statement(interpreter, statement, scope_env);
 		prev_result = result;
 		results[statement->repr()] = result->repr();
 	}
@@ -74,7 +69,7 @@ void langgen::interpreter::interpret(
 		interpreter.envValuesProperties
 	);
 
-	langgen::interpreter::evaluateScope(
+	langgen::interpreter::evaluate_scope(
 		interpreter,
 		program,
 		results,
