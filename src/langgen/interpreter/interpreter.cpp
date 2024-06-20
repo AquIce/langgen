@@ -2,9 +2,9 @@
 
 void langgen::interpreter::setup_interpreter(
 	langgen::interpreter::Interpreter& interpreter,
+	std::unordered_map<std::string, ParseStatementFunction> nodeEvaluationFunctions,
 	std::vector<std::string> envValuesProperties,
-	std::vector<langgen::env::EnvValidationRule> validationRules,
-	std::unordered_map<std::string, ParseStatementFunction> nodeEvaluationFunctions
+	std::vector<langgen::env::EnvValidationRule> validationRules
 ) {
 	interpreter.envValuesProperties = envValuesProperties;
 

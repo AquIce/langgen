@@ -16,7 +16,7 @@ std::shared_ptr<langgen::ast::Expression> parse_binary_expression(std::vector<la
 
 void setup_parser(langgen::parser::Parser& parser);
 
-bool mutabilityValidationFunction(langgen::env::EnvValue value);
+bool validate_mutability(langgen::env::EnvValue value);
 
 std::shared_ptr<langgen::values::RuntimeValue> evaluate_boolean_expression (
 	langgen::interpreter::Interpreter& interpreter,
@@ -393,7 +393,7 @@ void setup_parser(langgen::parser::Parser& parser) {
 
 #pragma region Interpreter Implementation
 
-bool mutabilityValidationFunction(langgen::env::EnvValue value) {
+bool validate_mutability(langgen::env::EnvValue value) {
 	try {
 		return value.properties.at("isMutable") == "true";
 	} catch(const std::exception& e) {
@@ -508,12 +508,18 @@ std::shared_ptr<langgen::values::RuntimeValue> evaluate_binary_expression (
 
 void setup_interpreter(langgen::interpreter::Interpreter& interpreter) {
 
+	std::unordered_map<std::string, langgen::interpreter::ParseStatementFunction> nodeEvaluationFunctions = std::unordered_map<std::string, langgen::interpreter::ParseStatementFunction>({
+		{ "BooleanExpression", &evaluate_boolean_expression },
+		{ "UnaryExpression", &evaluate_unary_expression },
+		{ "BinaryExpression", &evaluate_binary_expression },
+	});
+
 	std::vector<std::string> envValuesProperties = std::vector<std::string>({
 		"isMutable"
 	});
 
 	langgen::env::EnvValidationRule mutabilityValidation = {
-		&mutabilityValidationFunction,
+		&validate_mutability,
 		std::vector<langgen::env::ValidationRuleSensitivity>({
 			langgen::env::ValidationRuleSensitivity::SET
 		})
@@ -523,17 +529,11 @@ void setup_interpreter(langgen::interpreter::Interpreter& interpreter) {
 		mutabilityValidation
 	});
 
-	std::unordered_map<std::string, langgen::interpreter::ParseStatementFunction> nodeEvaluationFunctions = std::unordered_map<std::string, langgen::interpreter::ParseStatementFunction>({
-		{ "BooleanExpression", &evaluate_boolean_expression },
-		{ "UnaryExpression", &evaluate_unary_expression },
-		{ "BinaryExpression", &evaluate_binary_expression },
-	});
-
 	langgen::interpreter::setup_interpreter(
 		interpreter,
+		nodeEvaluationFunctions,
 		envValuesProperties,
-		validationRules,
-		nodeEvaluationFunctions
+		validationRules
 	);
 
 }
