@@ -2,11 +2,13 @@
 
 langgen::env::Environment::Environment(
 	std::vector<std::string> envValuesProperties,
+	std::vector<EnvValidationRule> validationRules,
 	std::shared_ptr<Environment> parent
 ) {
 	this->envValuesProperties = envValuesProperties;
+	this->validationRules = validationRules;
 	this->parent = parent;
-	this->values = std::unordered_map<std::string, std::shared_ptr<EnvValue>>();
+	this->values = std::unordered_map<std::string, EnvValue>();
 }
 
 bool langgen::env::Environment::has_value(std::string key) {
@@ -26,7 +28,15 @@ std::shared_ptr<langgen::values::RuntimeValue> langgen::env::Environment::set_va
 	
 	std::shared_ptr<langgen::values::RuntimeValue> old_val = this->get_value(key);
 
-	this->values.at(key)->value = value;
+	for(const langgen::env::EnvValidationRule& rule : this->validationRules) {
+		if(std::find(rule.sensitivity.begin(), rule.sensitivity.end(), langgen::env::ValidationRuleSensitivity::SET) != rule.sensitivity.end()) {
+			if(!rule.validationFunction(this->values.at(key))) {
+				throw std::runtime_error("Validation rule triggered on " + key);
+			}
+		}
+	}
+
+	this->values.at(key).value = value;
 
 	return old_val;
 }
@@ -46,7 +56,16 @@ std::shared_ptr<langgen::values::RuntimeValue> langgen::env::Environment::init_v
 	if(this->has_value(key)) {
 		throw std::runtime_error("Trying to redeclare an existing variable " + key);
 	}
-	this->values[key] = std::make_shared<langgen::env::EnvValue>(langgen::env::EnvValue{value, properties});
+
+	for(const langgen::env::EnvValidationRule& rule : this->validationRules) {
+		if(std::find(rule.sensitivity.begin(), rule.sensitivity.end(), langgen::env::ValidationRuleSensitivity::INIT) != rule.sensitivity.end()) {
+			if(rule.validationFunction(this->values.at(key))) {
+				throw std::runtime_error("Validation rule triggered on " + key);
+			}
+		}
+	}
+
+	this->values[key] = langgen::env::EnvValue(langgen::env::EnvValue{value, properties});
 
 	return value;
 }
@@ -58,5 +77,12 @@ std::shared_ptr<langgen::values::RuntimeValue> langgen::env::Environment::get_va
 		}
 		throw std::runtime_error("Trying to get non-declared variable " + key);
 	}
-	return this->values.at(key)->value;
+	for(const langgen::env::EnvValidationRule& rule : this->validationRules) {
+		if(std::find(rule.sensitivity.begin(), rule.sensitivity.end(), langgen::env::ValidationRuleSensitivity::GET) != rule.sensitivity.end()) {
+			if(rule.validationFunction(this->values.at(key))) {
+				throw std::runtime_error("Validation rule triggered on " + key);
+			}
+		}
+	}
+	return this->values.at(key).value;
 }

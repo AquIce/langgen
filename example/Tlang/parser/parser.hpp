@@ -7,8 +7,10 @@
 
 void setup_parser(langgen::parser::Parser& parser);
 
-namespace langgen {
+namespace tlang {
 	namespace parser {
+		std::shared_ptr<langgen::ast::Expression> parse_identifier(std::vector<langgen::lexer::Token>& tokens);
+
 		std::shared_ptr<langgen::ast::Expression> parse_boolean_expression(std::vector<langgen::lexer::Token>& tokens);
 
 		std::shared_ptr<langgen::ast::Expression> parse_unary_expression(std::vector<langgen::lexer::Token>& tokens);
@@ -20,6 +22,10 @@ namespace langgen {
 		std::shared_ptr<langgen::ast::Expression> parse_logical_expression(std::vector<langgen::lexer::Token>& tokens);
 
 		std::shared_ptr<langgen::ast::Expression> parse_binary_expression(std::vector<langgen::lexer::Token>& tokens);
+
+		std::shared_ptr<langgen::ast::Statement> parse_assignation_expression(std::vector<langgen::lexer::Token>& tokens);
+
+		std::shared_ptr<langgen::ast::Statement> parse_declaration_expression(std::vector<langgen::lexer::Token>& tokens);
 	}
 }
 

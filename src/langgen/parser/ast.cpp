@@ -18,7 +18,7 @@ std::string langgen::ast::Scope::repr(int indent) {
 	std::string pretty = std::string(indent, '\t') + "{\n";
 
 	for(std::shared_ptr<langgen::ast::Statement> statement : this->body) {
-		pretty += statement->repr(indent + 1);
+		pretty += statement->repr(indent + 1) + "\n";
 	}
 
 	pretty += std::string(indent, '\t') + "\n}";

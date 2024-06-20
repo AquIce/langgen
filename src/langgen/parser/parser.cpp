@@ -61,7 +61,7 @@ std::shared_ptr<langgen::ast::Statement> langgen::parser::parse_statement(
 	std::shared_ptr<langgen::ast::Statement> statement = nullptr;
 
 	for(auto& [key, node] : parser.nodesRegister) {
-		if(node.isTopNode) {
+		if(node.isTopNode && statement == nullptr) {
 			statement = node.parse_node(tokens);
 		}
 	}

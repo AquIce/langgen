@@ -6,7 +6,7 @@
 
 int main(int argc, char** argv) {
 
-	std::string src = "true && false || !false";
+	std::string src = "const i: boolean = true && false || !false i = false";
 	// std::string src = "3 + 100 * .2 / 1 - 2";
 	// std::string src = "(3 + 100 * .2) / (1 - 2)";
 

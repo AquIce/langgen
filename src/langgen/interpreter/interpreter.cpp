@@ -45,6 +45,7 @@ std::shared_ptr<langgen::values::RuntimeValue> langgen::interpreter::evaluate_sc
 	if(scope_env == nullptr) {
 		scope_env = std::make_shared<langgen::env::Environment>(
 			interpreter.envValuesProperties,
+			interpreter.validationRules,
 			parent_env
 		);
 	}
@@ -66,7 +67,8 @@ void langgen::interpreter::interpret(
 	std::shared_ptr<langgen::ast::Scope> program
 ) {
 	std::shared_ptr<langgen::env::Environment> env = std::make_shared<langgen::env::Environment>(
-		interpreter.envValuesProperties
+		interpreter.envValuesProperties,
+		interpreter.validationRules
 	);
 
 	langgen::interpreter::evaluate_scope(

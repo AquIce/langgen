@@ -10,17 +10,32 @@ void setup_interpreter(langgen::interpreter::Interpreter& interpreter);
 
 namespace tlang {
 	namespace interpreter {
-		std::shared_ptr<langgen::values::RuntimeValue> evaluate_boolean_expression (
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_identifier(
 			langgen::interpreter::Interpreter& interpreter,
 			std::shared_ptr<langgen::ast::Statement> statement,
 			std::shared_ptr<langgen::env::Environment> env
 		);
-		std::shared_ptr<langgen::values::RuntimeValue> evaluate_unary_expression (
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_boolean_expression(
 			langgen::interpreter::Interpreter& interpreter,
 			std::shared_ptr<langgen::ast::Statement> statement,
 			std::shared_ptr<langgen::env::Environment> env
 		);
-		std::shared_ptr<langgen::values::RuntimeValue> evaluate_binary_expression (
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_unary_expression(
+			langgen::interpreter::Interpreter& interpreter,
+			std::shared_ptr<langgen::ast::Statement> statement,
+			std::shared_ptr<langgen::env::Environment> env
+		);
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_binary_expression(
+			langgen::interpreter::Interpreter& interpreter,
+			std::shared_ptr<langgen::ast::Statement> statement,
+			std::shared_ptr<langgen::env::Environment> env
+		);
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_assignation_expression(
+			langgen::interpreter::Interpreter& interpreter,
+			std::shared_ptr<langgen::ast::Statement> statement,
+			std::shared_ptr<langgen::env::Environment> env
+		);
+		std::shared_ptr<langgen::values::RuntimeValue> evaluate_declaration_expression(
 			langgen::interpreter::Interpreter& interpreter,
 			std::shared_ptr<langgen::ast::Statement> statement,
 			std::shared_ptr<langgen::env::Environment> env

@@ -44,23 +44,11 @@ namespace langgen {
 		 * An Environment
 		 */
 		class Environment {
-		private:
-			/**
-			 * The parent environment
-			 */
-			std::shared_ptr<Environment> parent = nullptr;
-			/**
-			 * The values held by the environment (variables / constants)
-			 */
-			std::unordered_map<std::string, std::shared_ptr<EnvValue>> values;
-
-			std::vector<std::string> envValuesProperties;
-
 		public:
 			/**
 			 * Create a new Environment
 			 */
-			Environment(std::vector<std::string> envValuesProperties, std::shared_ptr<Environment> parent = nullptr);
+			Environment(std::vector<std::string> envValuesProperties, std::vector<EnvValidationRule> validationRules = std::vector<EnvValidationRule>(), std::shared_ptr<Environment> parent = nullptr);
 
 			/**
 			 * Check whether this environment has a given key (variable / constant)
@@ -96,6 +84,20 @@ namespace langgen {
 			 * @return The value
 			 */
 			std::shared_ptr<langgen::values::RuntimeValue> get_value(std::string key);
+			
+		private:
+			/**
+			 * The parent environment
+			 */
+			std::shared_ptr<Environment> parent = nullptr;
+			/**
+			 * The values held by the environment (variables / constants)
+			 */
+			std::unordered_map<std::string, EnvValue> values;
+
+			std::vector<std::string> envValuesProperties;
+
+			std::vector<EnvValidationRule> validationRules;
 		};
 
 		#pragma endregion
