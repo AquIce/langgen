@@ -33,3 +33,7 @@
 
 # VSCode
 .vscode/
+
+# Build
+
+src/build/
